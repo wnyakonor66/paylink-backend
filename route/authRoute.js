@@ -2,7 +2,7 @@ import express from "express";
 import {z} from "zod";
 import prisma from "../prisma/client.js";
 import bcrypt from "bcrypt";
-import { signAccessToken, signRefreshToken } from "../utils/token.js";
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/token.js";
 
 const router = express.Router();
 
@@ -57,8 +57,7 @@ router.post("/login", async(req, res) => {
     const passwordMatch = await bcrypt.compare(password, user.password);
     if(!passwordMatch) return res.status(401).json({error: "Invalid Credentials"});
 
-    
-    
+        
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
 
@@ -67,6 +66,22 @@ router.post("/login", async(req, res) => {
         accessToken,
         refreshToken
     })
+
+});
+
+//REFRESH TOKEN
+router.post("/refresh", async(req, res) => {
+    const { refreshToken } = req.body;
+
+    if(!refreshToken) return res.status(401).json({error: "refreshToken is required"});
+    
+    try{
+        const payload =  verifyRefreshToken(refreshToken);
+        const accessToken = signAccessToken({id: payload.sub, email: payload.email})
+        res.json({accessToken});
+    }catch(err){
+        res.status(401).json({error: "Invalid or expired Refresh Token"})
+    }
 
 })
 
