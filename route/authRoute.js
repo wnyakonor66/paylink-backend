@@ -83,6 +83,6 @@ router.post("/refresh", async(req, res) => {
         res.status(401).json({error: "Invalid or expired Refresh Token"})
     }
 
-})
+});
 
 export default router;
