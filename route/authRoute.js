@@ -40,6 +40,34 @@ router.post("/signup", async (req, res) => {
         refreshToken
     })   
 
+});
+
+
+//SIGN IN AUTHENTICATION
+router.post("/login", async(req, res) => {
+    const result = signUpSchema.safeParse(req.body);
+    if(!result.success) return res.status(400).json({error: result.error.errors});
+
+    const {email, password} = result.data;
+    const user = await prisma.user.findUnique(
+        {where: {email} }
+    )
+    if(!user) return res.status(401).json({error: "Invalid Credentials"});
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if(!passwordMatch) return res.status(401).json({error: "Invalid Credentials"});
+
+    
+    
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
+
+    res.status(201).json({
+        user: {id: user.id, email: user.email},
+        accessToken,
+        refreshToken
+    })
+
 })
 
 export default router;
