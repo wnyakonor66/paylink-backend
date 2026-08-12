@@ -5,6 +5,7 @@ import rateLimiter from "express-rate-limit";
 import authRoute from "./route/authRoute.js";
 import walletRoute from "./route/walletRoute.js";
 import transactionRoute from "./route/transactionRoute.js";
+import qrRoutes from "./route/qrRoutes.js";
 
 const app = express();
 const PORT = 3030;
@@ -16,6 +17,7 @@ app.use(limiter);
 app.use("/api/auth", authRoute);
 app.use("/api/wallet", walletRoute);
 app.use("/api/transaction", transactionRoute);
+app.use("/api/", qrRoutes);
 
 
 app.get("/health", (req, res) => (
