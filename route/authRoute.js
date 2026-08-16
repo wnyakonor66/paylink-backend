@@ -8,8 +8,14 @@ const router = express.Router();
 
 //SCHEMA VALIDATOR
 const signUpSchema = z.object({
+    name: z.string().trim().min(1, "Name is required"),
     email: z.string().email("Valid email is required"),
     password: z.string().min(8, "Password length must be 8 characters")
+});
+
+const loginSchema = z.object({
+    email: z.string().email("Valid email is required"),
+    password: z.string().min(1, "Password length must be 8 characters")
 });
 
 //SIGN UP AUTHENTICATION
@@ -17,16 +23,17 @@ router.post("/signup", async (req, res) => {
     const result = signUpSchema.safeParse(req.body);
     if(!result.success) return res.status(400).json({error: result.error.errors});
     
-    const {email, password} = result.data;
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const {name, email, password} = result.data;
+    const passwordHash = await bcrypt.hash(password, 10);
     
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if(existingUser) return res.status(409).json({error: "Email already exists"});
 
     const user = await prisma.user.create({
         data: {
+            name,
             email, 
-            password: hashedPassword,
+            password: passwordHash,
             wallet: { create: {} }
         }
     });
@@ -35,7 +42,7 @@ router.post("/signup", async (req, res) => {
     const refreshToken = signRefreshToken(user);
 
     res.status(201).json({
-        user: {id: user.id, email: user.email},
+        user: {id: user.id, name: user.name, email: user.email},
         accessToken,
         refreshToken
     })   
@@ -45,7 +52,7 @@ router.post("/signup", async (req, res) => {
 
 //SIGN IN AUTHENTICATION
 router.post("/login", async(req, res) => {
-    const result = signUpSchema.safeParse(req.body);
+    const result = loginSchema.safeParse(req.body);
     if(!result.success) return res.status(400).json({error: result.error.errors});
 
     const {email, password} = result.data;
@@ -61,7 +68,7 @@ router.post("/login", async(req, res) => {
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
 
-    res.status(201).json({
+    res.status(200).json({
         user: {id: user.id, email: user.email},
         accessToken,
         refreshToken
@@ -83,6 +90,6 @@ router.post("/refresh", async(req, res) => {
         res.status(401).json({error: "Invalid or expired Refresh Token"})
     }
 
-});
+})
 
 export default router;

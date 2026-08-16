@@ -24,7 +24,15 @@ app.get("/health", (req, res) => (
     res.status(200).json("Running...")
 ));
 
-
-app.listen(PORT, () => {
+if(process.env.NODE_ENV !== 'test'){
+    app.listen(PORT, () => {
     console.log(`Paylink server is running on PORT ${PORT}`)
 })
+}
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+export default app;

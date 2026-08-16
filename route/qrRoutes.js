@@ -23,7 +23,7 @@ router.get("/my-code", async(req, res) => {
 router.post("/decode", async(req, res) => {
     const {payload} = req.body;
 
-    if(!payload) return res.status(400.json({error: "Payload is required"});
+    if(!payload) return res.status(400).json({error: "Payload is required"});
 
     try {
         const decoded = JSON.parse(payload);

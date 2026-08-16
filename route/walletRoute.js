@@ -70,7 +70,7 @@ router.post("/send", async (req, res) => {
     });
     if(!recipient || !recipient.wallet) return res.status(400).json({error: "Recipient not found"});
 
-    if(Number(senderWallet.balance < amount)) return res.status(400).json({error: "Insufficient funds"});
+    if(Number(senderWallet.balance) < amount) return res.status(400).json({error: "Insufficient funds"});
 
     const [updatedSenderWallet] = await prisma.$transaction([
         prisma.wallet.update({
